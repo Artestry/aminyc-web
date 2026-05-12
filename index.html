@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AMI NYC — Affordable housing, in your language</title>
+  <meta name="description" content="The front door to affordable housing in New York City. Find listings, check eligibility, and apply through Housing Connect — in English, Spanish, or Chinese." />
+  <meta property="og:title" content="AMI NYC — Affordable housing, in your language" />
+  <meta property="og:description" content="The front door to affordable housing in New York City. Trilingual eligibility and listings. Pilot preview live now; native iOS + Android apps coming early June." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://aminyc.org" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" />
+  <style>
+    :root {
+      --coral: #E8624D;
+      --coral-2: #F58A77;
+      --gold: #C9A35C;
+      --sand: #EFE7D4;
+      --navy: #1B2D4F;
+      --navy-2: #233859;
+      --ink: #15212B;
+      --ink-2: #354450;
+      --ink-3: #6B7984;
+      --ink-4: #A0AAB1;
+      --bg: #FAF8F4;
+      --surface: #FFFFFF;
+      --surface-2: #F4F0E8;
+      --line: #E8E2D5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      max-width: 980px;
+      margin: 0 auto;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; color: var(--navy); letter-spacing: -0.3px; }
+    .pilot-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    .lang-toggle { display: flex; gap: 6px; align-items: center; }
+    .lang-toggle .lang-label { font-size: 12px; color: var(--ink-3); margin-right: 4px; }
+    .lang-chip {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-2);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .lang-chip:hover { border-color: var(--ink-3); }
+    .lang-chip.active { background: var(--navy); border-color: var(--navy); color: var(--surface); }
+
+    /* Hero */
+    .hero { padding: 56px 0 48px; }
+    .hero h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 600;
+      line-height: 1.08;
+      color: var(--navy);
+      letter-spacing: -1.2px;
+      margin-bottom: 20px;
+      max-width: 720px;
+    }
+    .hero h1 em { font-style: italic; color: var(--coral); font-weight: 500; }
+    .hero .lede {
+      font-size: 19px;
+      color: var(--ink-2);
+      max-width: 640px;
+      margin-bottom: 28px;
+    }
+    .hero .meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink-3);
+      background: var(--surface-2);
+      padding: 8px 14px;
+      border-radius: 999px;
+      margin-bottom: 32px;
+    }
+    .hero .meta::before { content: "•"; color: var(--coral); font-weight: 700; }
+    .cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .btn-primary {
+      display: inline-block;
+      background: var(--coral);
+      color: var(--surface);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 14px 26px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .btn-primary:hover { background: var(--coral-2); }
+    .btn-secondary {
+      display: inline-block;
+      background: transparent;
+      color: var(--navy);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 13px 22px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-secondary:hover { border-color: var(--navy); }
+
+    /* Sections */
+    section { padding: 48px 0; }
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4vw, 36px);
+      font-weight: 600;
+      color: var(--navy);
+      letter-spacing: -0.6px;
+      margin-bottom: 20px;
+    }
+    h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    p { color: var(--ink-2); margin-bottom: 14px; max-width: 680px; }
+
+    /* What it does grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 26px;
+    }
+    .card .step {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+
+    /* Form */
+    .signup {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 40px;
+      margin-top: 24px;
+    }
+    .signup h2 { margin-bottom: 10px; }
+    .signup .form-lede { color: var(--ink-2); margin-bottom: 24px; }
+    form { display: grid; gap: 14px; max-width: 520px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 520px) { .field-row { grid-template-columns: 1fr; } }
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 4px;
+      display: block;
+    }
+    input, select {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      width: 100%;
+      transition: border-color 0.15s ease;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--navy); }
+    .form-note { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+    .form-success {
+      display: none;
+      background: var(--sand);
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 18px;
+      color: var(--ink);
+      margin-top: 12px;
+    }
+    .form-success.show { display: block; }
+    .form-success h4 { font-family: 'Fraunces', serif; font-size: 18px; color: var(--navy); margin-bottom: 4px; }
+
+    /* Trust strip */
+    .trust {
+      background: var(--surface-2);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 32px 0;
+      margin-top: 48px;
+    }
+    .trust p { font-size: 14px; color: var(--ink-2); margin: 0; max-width: 100%; }
+
+    /* Footer */
+    footer { padding: 40px 0 60px; color: var(--ink-3); font-size: 13px; }
+    footer p { color: var(--ink-3); max-width: 100%; margin-bottom: 8px; }
+    footer a { color: var(--navy); text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <span class="brand">AMI NYC</span>
+    <span class="pilot-badge" data-i18n="pilotBadge">Pilot Preview</span>
+  </div>
+  <div class="lang-toggle" role="radiogroup" aria-label="Language">
+    <span class="lang-label" data-i18n="language">Language:</span>
+    <button class="lang-chip active" data-lang="en" role="radio" aria-checked="true">English</button>
+    <button class="lang-chip" data-lang="es" role="radio" aria-checked="false">Español</button>
+    <button class="lang-chip" data-lang="zh" role="radio" aria-checked="false">中文</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="hero" id="top">
+    <h1 data-i18n="heroH1">Affordable housing in NYC, <em>in your language</em>.</h1>
+    <p class="lede" data-i18n="heroLede">Find listings matched to your eligibility, prepare documents, and apply through Housing Connect — all in English, Spanish, or Chinese.</p>
+    <div class="meta" data-i18n="heroMeta">Native iOS + Android apps coming early June 2026</div>
+    <div class="cta-row">
+      <a href="#signup" class="btn-primary" data-i18n="ctaJoinPilot">Join the pilot</a>
+      <a href="#how" class="btn-secondary" data-i18n="ctaHowItWorks">How it works</a>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2 data-i18n="howH2">How AMI NYC works</h2>
+    <p data-i18n="howLede">We unify listings from Housing Connect, HPD, HDC, and re-rental sources in one place. Then we match them to your household and route you to the official application.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="step" data-i18n="step1">Step 1</div>
+        <h3 data-i18n="step1H3">Tell us about your household</h3>
+        <p data-i18n="step1P">Income, household size, and optional details like voucher status. Takes under 2 minutes.</p>
+      </div>
+      <div class="card">
+        <div class="step" data-i18n="step2">Step 2</div>
+        <h3 data-i18n="step2H3">See real matches</h3>
+        <p data-i18n="step2P">Eligibility calculated against the same HUD 2024 AMI tables HPD and HDC use. No guesswork.</p>
+      </div>
+      <div class="card">
+        <div class="step" data-i18n="step3">Step 3</div>
+        <h3 data-i18n="step3H3">Apply through Housing Connect</h3>
+        <p data-i18n="step3P">One-click handoff to the official application. We are the front door, not a replacement.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="signup" class="signup">
+    <h2 data-i18n="signupH2">Join the 30-day pilot</h2>
+    <p class="form-lede" data-i18n="signupLede">Be among the first New Yorkers to use AMI NYC. You'll get early access to the web preview and an invitation to install the native iOS or Android app when it launches in early June.</p>
+    <form id="pilot-form" novalidate>
+      <div>
+        <label for="email" data-i18n="emailLabel">Email</label>
+        <input type="email" id="email" name="email" required placeholder="usuario@ejemplo.com" autocomplete="email" />
+      </div>
+      <div class="field-row">
+        <div>
+          <label for="language" data-i18n="languageFieldLabel">Preferred language</label>
+          <select id="language" name="language" required>
+            <option value="en" data-i18n="optEn">English</option>
+            <option value="es" data-i18n="optEs">Español</option>
+            <option value="zh" data-i18n="optZh">中文</option>
+          </select>
+        </div>
+        <div>
+          <label for="zip" data-i18n="zipLabel">ZIP code (optional)</label>
+          <input type="text" id="zip" name="zip" inputmode="numeric" pattern="[0-9]{5}" placeholder="10001" autocomplete="postal-code" />
+        </div>
+      </div>
+      <input type="hidden" name="source" value="aminyc-landing" />
+      <button type="submit" class="btn-primary" data-i18n="formSubmit">Join the pilot</button>
+      <p class="form-note" data-i18n="formNote">We will only use your email to invite you to the pilot. No spam, ever. We never share your data with landlords or agencies.</p>
+    </form>
+    <div class="form-success" id="form-success" role="status" aria-live="polite">
+      <h4 data-i18n="successH4">Gracias. Thank you. 谢谢.</h4>
+      <p data-i18n="successP">You are on the pilot list. We will email you when the native app is ready.</p>
+    </div>
+  </section>
+
+</main>
+
+<div class="trust">
+  <div class="container">
+    <p data-i18n="trustP">AMI NYC is an independent civic project. We route applications through the official Housing Connect, HPD, and HDC systems. We do not collect application materials. Documents stay on your device during the pilot.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p data-i18n="footerMission">A trilingual, resident-first front door to affordable housing in New York City.</p>
+    <p>© 2026 AMI NYC · <a href="mailto:hello@aminyc.org">hello@aminyc.org</a></p>
+  </div>
+</footer>
+
+<script>
+  // ---------- Trilingual strings ----------
+  const i18n = {
+    en: {
+      pilotBadge: "Pilot Preview",
+      language: "Language:",
+      heroH1: "Affordable housing in NYC, <em>in your language</em>.",
+      heroLede: "Find listings matched to your eligibility, prepare documents, and apply through Housing Connect — all in English, Spanish, or Chinese.",
+      heroMeta: "Native iOS + Android apps coming early June 2026",
+      ctaJoinPilot: "Join the pilot",
+      ctaHowItWorks: "How it works",
+      howH2: "How AMI NYC works",
+      howLede: "We unify listings from Housing Connect, HPD, HDC, and re-rental sources in one place. Then we match them to your household and route you to the official application.",
+      step1: "Step 1", step1H3: "Tell us about your household", step1P: "Income, household size, and optional details like voucher status. Takes under 2 minutes.",
+      step2: "Step 2", step2H3: "See real matches", step2P: "Eligibility calculated against the same HUD 2024 AMI tables HPD and HDC use. No guesswork.",
+      step3: "Step 3", step3H3: "Apply through Housing Connect", step3P: "One-click handoff to the official application. We are the front door, not a replacement.",
+      signupH2: "Join the 30-day pilot",
+      signupLede: "Be among the first New Yorkers to use AMI NYC. You will get early access to the web preview and an invitation to install the native iOS or Android app when it launches in early June.",
+      emailLabel: "Email", languageFieldLabel: "Preferred language", zipLabel: "ZIP code (optional)",
+      optEn: "English", optEs: "Español", optZh: "中文",
+      formSubmit: "Join the pilot",
+      formNote: "We will only use your email to invite you to the pilot. No spam, ever. We never share your data with landlords or agencies.",
+      successH4: "Thank you.", successP: "You are on the pilot list. We will email you when the native app is ready.",
+      trustP: "AMI NYC is an independent civic project. We route applications through the official Housing Connect, HPD, and HDC systems. We do not collect application materials. Documents stay on your device during the pilot.",
+      footerMission: "A trilingual, resident-first front door to affordable housing in New York City."
+    },
+    es: {
+      pilotBadge: "Vista previa piloto",
+      language: "Idioma:",
+      heroH1: "Vivienda asequible en NYC, <em>en tu idioma</em>.",
+      heroLede: "Encuentra listados que coinciden con tu elegibilidad, prepara tus documentos y aplica a través de Housing Connect — todo en inglés, español o chino.",
+      heroMeta: "Aplicaciones nativas iOS + Android próximamente, principios de junio 2026",
+      ctaJoinPilot: "Únete al piloto",
+      ctaHowItWorks: "Cómo funciona",
+      howH2: "Cómo funciona AMI NYC",
+      howLede: "Unimos los listados de Housing Connect, HPD, HDC y fuentes de realquiler en un solo lugar. Luego los emparejamos con tu hogar y te dirigimos a la solicitud oficial.",
+      step1: "Paso 1", step1H3: "Cuéntanos sobre tu hogar", step1P: "Ingresos, tamaño del hogar y detalles opcionales como estado de voucher. Toma menos de 2 minutos.",
+      step2: "Paso 2", step2H3: "Ve coincidencias reales", step2P: "Elegibilidad calculada con las mismas tablas AMI 2024 de HUD que usan HPD y HDC. Sin adivinanzas.",
+      step3: "Paso 3", step3H3: "Aplica por Housing Connect", step3P: "Entrega con un solo clic a la solicitud oficial. Somos la puerta de entrada, no un reemplazo.",
+      signupH2: "Únete al piloto de 30 días",
+      signupLede: "Sé de los primeros neoyorquinos en usar AMI NYC. Tendrás acceso temprano a la vista previa web y una invitación para instalar la aplicación nativa de iOS o Android cuando se lance a principios de junio.",
+      emailLabel: "Correo electrónico", languageFieldLabel: "Idioma preferido", zipLabel: "Código postal (opcional)",
+      optEn: "English", optEs: "Español", optZh: "中文",
+      formSubmit: "Únete al piloto",
+      formNote: "Solo usaremos tu correo para invitarte al piloto. Sin spam, nunca. Nunca compartimos tus datos con propietarios ni agencias.",
+      successH4: "Gracias.", successP: "Estás en la lista del piloto. Te enviaremos un correo cuando la aplicación nativa esté lista.",
+      trustP: "AMI NYC es un proyecto cívico independiente. Dirigimos las solicitudes a través de los sistemas oficiales de Housing Connect, HPD y HDC. No recopilamos materiales de solicitud. Los documentos permanecen en tu dispositivo durante el piloto.",
+      footerMission: "Una puerta de entrada trilingüe, primero para los residentes, a la vivienda asequible en Nueva York."
+    },
+    zh: {
+      pilotBadge: "试点预览",
+      language: "语言：",
+      heroH1: "纽约市可负担住房，<em>用您的语言</em>。",
+      heroLede: "查找符合您资格的房源，准备申请材料，并通过 Housing Connect 提交申请 — 全部以英语、西班牙语或中文提供。",
+      heroMeta: "iOS 与 Android 原生应用将于 2026 年 6 月初推出",
+      ctaJoinPilot: "加入试点",
+      ctaHowItWorks: "工作流程",
+      howH2: "AMI NYC 工作流程",
+      howLede: "我们将 Housing Connect、HPD、HDC 及再租赁来源的房源整合到一处。然后根据您的家庭情况进行匹配，并引导您完成官方申请。",
+      step1: "第 1 步", step1H3: "告诉我们您的家庭情况", step1P: "收入、家庭人数及可选信息（如住房券状态）。耗时不到 2 分钟。",
+      step2: "第 2 步", step2H3: "查看真实匹配", step2P: "按照 HPD 和 HDC 使用的 HUD 2024 AMI 表格计算资格。无需猜测。",
+      step3: "第 3 步", step3H3: "通过 Housing Connect 申请", step3P: "一键转交至官方申请。我们是入口，不是替代品。",
+      signupH2: "加入为期 30 天的试点",
+      signupLede: "成为首批使用 AMI NYC 的纽约人之一。您将获得网页预览的早期访问权限，并在 6 月初原生应用上线时收到 iOS 或 Android 应用的安装邀请。",
+      emailLabel: "电子邮箱", languageFieldLabel: "首选语言", zipLabel: "邮政编码（可选）",
+      optEn: "English", optEs: "Español", optZh: "中文",
+      formSubmit: "加入试点",
+      formNote: "我们只会使用您的电子邮箱邀请您参加试点。绝无垃圾邮件。我们绝不与房东或机构共享您的数据。",
+      successH4: "谢谢。", successP: "您已加入试点名单。原生应用准备就绪后我们将通过电子邮件通知您。",
+      trustP: "AMI NYC 是一个独立的公民项目。我们通过官方 Housing Connect、HPD 和 HDC 系统转交申请。我们不收集申请材料。试点期间，您的文件仅保存在您的设备上。",
+      footerMission: "一个面向居民、三语支持的纽约市可负担住房入口。"
+    }
+  };
+
+  // ---------- Language toggle ----------
+  function setLanguage(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      if (i18n[lang] && i18n[lang][key] !== undefined) {
+        el.innerHTML = i18n[lang][key];
+      }
+    });
+    document.querySelectorAll('.lang-chip').forEach((chip) => {
+      const isActive = chip.getAttribute('data-lang') === lang;
+      chip.classList.toggle('active', isActive);
+      chip.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    });
+    try { localStorage.setItem('aminyc-lang', lang); } catch (e) {}
+  }
+  document.querySelectorAll('.lang-chip').forEach((chip) => {
+    chip.addEventListener('click', () => setLanguage(chip.getAttribute('data-lang')));
+  });
+  // Init: browser pref or saved
+  (function () {
+    let initial = 'en';
+    try { initial = localStorage.getItem('aminyc-lang') || initial; } catch (e) {}
+    if (initial === 'en') {
+      const nav = (navigator.language || 'en').toLowerCase();
+      if (nav.startsWith('es')) initial = 'es';
+      else if (nav.startsWith('zh')) initial = 'zh';
+    }
+    setLanguage(initial);
+  })();
+
+  // ---------- Form submission ----------
+  // Replace APPS_SCRIPT_URL with your deployed Google Apps Script web app URL.
+  // See pilot-signup.gs in this repo for the script.
+  const APPS_SCRIPT_URL = "REPLACE_WITH_APPS_SCRIPT_WEBHOOK_URL";
+
+  const form = document.getElementById('pilot-form');
+  const success = document.getElementById('form-success');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+
+    // If the webhook URL isn't configured, fall back to a mailto: with the data
+    if (APPS_SCRIPT_URL.startsWith("REPLACE_")) {
+      const params = new URLSearchParams(data).toString();
+      window.location.href = `mailto:hello@aminyc.org?subject=AMI%20NYC%20pilot%20signup&body=${encodeURIComponent(params)}`;
+      return;
+    }
+
+    try {
+      await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: data });
+      form.style.display = 'none';
+      success.classList.add('show');
+    } catch (err) {
+      // Fallback: mailto
+      const params = new URLSearchParams(data).toString();
+      window.location.href = `mailto:hello@aminyc.org?subject=AMI%20NYC%20pilot%20signup&body=${encodeURIComponent(params)}`;
+    }
+  });
+</script>
+
+</body>
+</html>
