@@ -3514,25 +3514,43 @@ function submitPilotForm(e, which) {
 
   const formData = new FormData(form);
   // Append current language for context
-  if (state && state.lang) formData.append('lang', state.lang);
+  if (typeof state !== 'undefined' && state && state.lang) formData.append('lang', state.lang);
+
+  // Show thank-you FIRST so the user always gets visual feedback,
+  // even if the mailto fallback navigates away or fails silently.
+  if (form) form.hidden = true;
+  if (thanks) thanks.hidden = false;
+
+  // Backup: persist the submission to localStorage so nothing is ever lost
+  // if both Apps Script and mailto fail. Owner can recover from console.
+  try {
+    var bucket = which === 'feedback' ? 'aminyc_feedback' : 'aminyc_signups';
+    var existing = JSON.parse(localStorage.getItem(bucket) || '[]');
+    var entry = { _ts: new Date().toISOString() };
+    formData.forEach(function(val, key) { entry[key] = String(val); });
+    existing.push(entry);
+    localStorage.setItem(bucket, JSON.stringify(existing));
+  } catch (err) { /* localStorage unavailable in private mode — ignore */ }
 
   if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.startsWith('REPLACE_')) {
     // POST to Apps Script webhook
     fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: formData })
       .catch(function() { /* no-cors suppresses response; treat as success */ });
   } else {
-    // Fallback: compose mailto
+    // Fallback: open the user's email client with the data prefilled.
+    // Use window.location.href on a short delay so the thank-you renders
+    // before iOS Safari navigates away to the Mail app.
     var pairs = [];
     formData.forEach(function(val, key) { pairs.push(key + ': ' + val); });
-    var subject = encodeURIComponent((which === 'signup' ? 'AMI NYC Pilot Signup' : 'AMI NYC Feedback'));
+    var subject = encodeURIComponent(which === 'signup' ? 'AMI NYC Pilot Signup' : 'AMI NYC Feedback');
     var body = encodeURIComponent(pairs.join('\n'));
-    window.open('mailto:hello@aminyc.org?subject=' + subject + '&body=' + body);
+    setTimeout(function() {
+      window.location.href = 'mailto:hello@aminyc.org?subject=' + subject + '&body=' + body;
+    }, 600);
   }
 
-  // Show thank-you, then close
-  if (form) form.hidden = true;
-  if (thanks) thanks.hidden = false;
-  setTimeout(function() { closePilotModal(which); }, 2000);
+  // Auto-close after the user has had a chance to read the thank-you
+  setTimeout(function() { closePilotModal(which); }, 4000);
 }
 
 /* Apply pilot translations whenever language changes */
