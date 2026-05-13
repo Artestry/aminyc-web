@@ -2593,8 +2593,19 @@ let state;
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = { ...DEFAULT_STATE, ...JSON.parse(raw) };
-    else state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    if (raw) {
+      const saved = JSON.parse(raw);
+      // Deep-merge: preserve nested DEFAULT_STATE objects (household, documents)
+      // so missing or null sub-fields always fall back to safe defaults.
+      state = {
+        ...DEFAULT_STATE,
+        ...saved,
+        household: { ...DEFAULT_STATE.household, ...(saved.household || {}) },
+        documents: { ...DEFAULT_STATE.documents, ...(saved.documents || {}) },
+      };
+    } else {
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
   } catch (e) {
     state = JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
@@ -2675,15 +2686,21 @@ function renderApp() {
     b.classList.toggle('active', b.dataset.route === currentRoute);
   });
   const main = document.getElementById('main-area');
-  switch (currentRoute) {
-    case 'home': renderHome(main); break;
-    case 'listings': renderListings(main); break;
-    case 'map': renderMap(main); break;
-    case 'detail': renderDetail(main, currentDetailId); break;
-    case 'checker': renderChecker(main); break;
-    case 'vault': renderVault(main); break;
-    case 'profile': renderProfile(main); break;
-    default: renderHome(main);
+  if (!main) return;
+  try {
+    switch (currentRoute) {
+      case 'home': renderHome(main); break;
+      case 'listings': renderListings(main); break;
+      case 'map': renderMap(main); break;
+      case 'detail': renderDetail(main, currentDetailId); break;
+      case 'checker': renderChecker(main); break;
+      case 'vault': renderVault(main); break;
+      case 'profile': renderProfile(main); break;
+      default: renderHome(main);
+    }
+  } catch (e) {
+    console.error('[renderApp] Render error on route ' + currentRoute + ':', e);
+    main.innerHTML = '<div class="empty" style="padding:40px 20px;text-align:center"><p style="color:var(--ink-3);margin-bottom:16px;">Something went wrong loading this view.</p><button class="btn btn-outline" onclick="renderApp()">Retry</button></div>';
   }
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
@@ -2721,7 +2738,10 @@ function doLogin() {
   state.user = { email, name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') };
   saveState();
   showView('app');
-  if (!location.hash) location.hash = '#home';
+  if (!currentRoute || currentRoute === 'login') currentRoute = 'home';
+  // Use replaceState to sync the URL without firing hashchange (which would
+  // trigger a redundant second renderApp call).
+  try { history.replaceState(null, '', '#' + currentRoute); } catch (e) {}
   renderApp();
   toast(t('toast_welcome', { name: state.user.name }));
 }
@@ -2736,84 +2756,98 @@ function doLogout() {
    HOME / DASHBOARD
 ============================================================ */
 function renderHome(root) {
-  const userAmi = householdAmiPercent(state.household.income, state.household.hhSize);
-  const checks = LISTINGS.map(l => ({ listing: l, ...checkListingEligibility(l, state.household) }));
-  const eligibleCount = checks.filter(c => c.status === 'eligible').length;
-  const maybeCount = checks.filter(c => c.status === 'maybe').length;
-  const upcoming = LISTINGS.slice().sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).slice(0, 3);
-  const recommended = checks.filter(c => c.status === 'eligible').slice(0, 6);
-  const featured = recommended.length >= 6 ? recommended : checks.slice(0, 6);
+  try {
+    const userAmi = householdAmiPercent(state.household.income, state.household.hhSize);
+    const checks = LISTINGS.map(l => ({ listing: l, ...checkListingEligibility(l, state.household) }));
+    const eligibleCount = checks.filter(c => c.status === 'eligible').length;
+    const maybeCount = checks.filter(c => c.status === 'maybe').length;
+    const upcoming = LISTINGS.slice().sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).slice(0, 3);
+    const recommended = checks.filter(c => c.status === 'eligible').slice(0, 6);
+    const featured = recommended.length >= 6 ? recommended : checks.slice(0, 6);
 
-  root.innerHTML = `
-    <div class="greeting-row">
-      <div class="greeting">
-        <h2>${t('hello', { name: state.user.name.split(' ')[0] })}</h2>
-        <p>${t(eligibleCount === 1 ? 'match_one' : 'match_many', { n: eligibleCount })}</p>
-      </div>
-      <div class="avatar-pill"><div class="avatar">${initials(state.user.name)}</div>${state.user.name}</div>
-    </div>
-
-    <div class="qualify-hero">
-      <div class="row">
-        <div class="copy">
-          <div class="eyebrow">${t('qualify_eyebrow')}</div>
-          <h2>${t('qualify_title', { p: userAmi })}</h2>
-          <p>${t('qualify_body', { income: state.household.income.toLocaleString(), n: state.household.hhSize })}</p>
-          <button class="btn btn-primary" onclick="navigate('checker')">${t('qualify_btn')}</button>
+    root.innerHTML = `
+      <div class="greeting-row">
+        <div class="greeting">
+          <h2>${t('hello', { name: (state.user.name || 'there').split(' ')[0] })}</h2>
+          <p>${t(eligibleCount === 1 ? 'match_one' : 'match_many', { n: eligibleCount })}</p>
         </div>
-        <div class="qualify-stats">
-          <div class="stat"><div class="num match">${eligibleCount}</div><div class="lbl">${t('stat_match')}</div></div>
-          <div class="stat"><div class="num">${maybeCount}</div><div class="lbl">${t('stat_maybe')}</div></div>
-          <div class="stat"><div class="num">${LISTINGS.length}</div><div class="lbl">${t('stat_lotteries')}</div></div>
+        <div class="avatar-pill"><div class="avatar">${initials(state.user.name || '?')}</div>${state.user.name || ''}</div>
+      </div>
+
+      <div class="qualify-hero">
+        <div class="row">
+          <div class="copy">
+            <div class="eyebrow">${t('qualify_eyebrow')}</div>
+            <h2>${t('qualify_title', { p: userAmi })}</h2>
+            <p>${t('qualify_body', { income: (state.household.income || 0).toLocaleString(), n: state.household.hhSize || 1 })}</p>
+            <button class="btn btn-primary" onclick="navigate('checker')">${t('qualify_btn')}</button>
+          </div>
+          <div class="qualify-stats">
+            <div class="stat"><div class="num match">${eligibleCount}</div><div class="lbl">${t('stat_match')}</div></div>
+            <div class="stat"><div class="num">${maybeCount}</div><div class="lbl">${t('stat_maybe')}</div></div>
+            <div class="stat"><div class="num">${LISTINGS.length}</div><div class="lbl">${t('stat_lotteries')}</div></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="section-header">
-      <h3>${t('section_recommended')}</h3>
-      <a class="link" onclick="navigate('listings')">${t('section_see_all')}</a>
-    </div>
-    <div class="listing-grid">${featured.map(c => listingCard(c.listing, c.status, c.reason)).join('')}</div>
+      <div class="section-header">
+        <h3>${t('section_recommended')}</h3>
+        <a class="link" onclick="navigate('listings')">${t('section_see_all')}</a>
+      </div>
+      <div class="listing-grid">${featured.map(c => listingCard(c.listing, c.status, c.reason)).join('')}</div>
 
-    <div class="section-header" style="margin-top:36px;">
-      <h3>${t('section_closing')}</h3>
-      <a class="link" onclick="navigate('listings')">${t('section_all_deadlines')}</a>
-    </div>
-    <div class="listing-grid">${upcoming.map(l => listingCard(l)).join('')}</div>
-  `;
+      <div class="section-header" style="margin-top:36px;">
+        <h3>${t('section_closing')}</h3>
+        <a class="link" onclick="navigate('listings')">${t('section_all_deadlines')}</a>
+      </div>
+      <div class="listing-grid">${upcoming.map(l => listingCard(l)).join('')}</div>
+    `;
+  } catch (e) {
+    console.error('[renderHome] Error:', e);
+    root.innerHTML = '<div class="empty" style="padding:40px 20px;text-align:center"><p style="color:var(--ink-3);margin-bottom:16px;">Loading listings&hellip;</p><button class="btn btn-outline" onclick="renderApp()">Retry</button></div>';
+  }
 }
 
 function listingCard(l, statusOverride, reasonOverride) {
-  const elig = statusOverride ? { status: statusOverride, reason: reasonOverride } : checkListingEligibility(l, state.household);
-  const rentRange = unitRentRange(l);
-  const amiRange = unitAmiRange(l);
-  const days = daysUntil(l.deadline);
-  const deadlineUrgent = days <= 14;
-  const eligLabel = { eligible: t('elig_eligible'), maybe: t('elig_maybe'), 'not-eligible': t('elig_not'), unknown: t('elig_unknown') }[elig.status];
-  const deadlineText = days <= 0 ? t('closed') : (days === 1 ? t('day_left') : t('days_left', { n: days }));
-  return `
-    <article class="listing-card" onclick="navigate('detail', '${l.id}')">
-      <div class="listing-img">
-        <img src="${l.images[0]}" alt="${l.name}" loading="lazy" onerror="this.style.opacity=0.3">
-        ${l.feature ? `<div class="badge">${tFeat(l.feature)}</div>` : ''}
-        <div class="deadline-pill ${deadlineUrgent ? 'urgent' : ''}">${deadlineText}</div>
-        <div class="eligibility-badge ${elig.status}"><span class="eligibility-dot"></span>${eligLabel}</div>
-      </div>
-      <div class="listing-body">
-        <div class="name">${l.name}</div>
-        <div class="neighborhood">${l.neighborhood}, ${tBor(l.borough)}</div>
-        <div class="listing-tags">
-          <span class="tag ami">${amiRange}</span>
-          ${l.units.length > 1 ? `<span class="tag">Studio – ${l.units[l.units.length - 1].type}</span>` : `<span class="tag">${l.units[0].type}</span>`}
-          <span class="tag">${l.available} ${t('units_label')}</span>
+  try {
+    const elig = statusOverride ? { status: statusOverride, reason: reasonOverride } : checkListingEligibility(l, state.household);
+    const rentRange = unitRentRange(l);
+    const amiRange = unitAmiRange(l);
+    const days = daysUntil(l.deadline);
+    const deadlineUrgent = days <= 14;
+    const eligLabel = { eligible: t('elig_eligible'), maybe: t('elig_maybe'), 'not-eligible': t('elig_not'), unknown: t('elig_unknown') }[elig.status] || '';
+    const deadlineText = days <= 0 ? t('closed') : (days === 1 ? t('day_left') : t('days_left', { n: days }));
+    const imgSrc = (l.images && l.images[0]) ? l.images[0] : '';
+    const unitTag = (l.units && l.units.length > 1)
+      ? `<span class="tag">Studio – ${l.units[l.units.length - 1].type}</span>`
+      : `<span class="tag">${l.units && l.units[0] ? l.units[0].type : ''}</span>`;
+    return `
+      <article class="listing-card" onclick="navigate('detail', '${l.id}')">
+        <div class="listing-img">
+          <img src="${imgSrc}" alt="${l.name}" loading="lazy" onerror="this.style.opacity=0.3">
+          ${l.feature ? `<div class="badge">${tFeat(l.feature)}</div>` : ''}
+          <div class="deadline-pill ${deadlineUrgent ? 'urgent' : ''}">${deadlineText}</div>
+          <div class="eligibility-badge ${elig.status}"><span class="eligibility-dot"></span>${eligLabel}</div>
         </div>
-        <div class="listing-meta">
-          <span class="price">$${rentRange.min.toLocaleString()}<small style="font-weight:400;color:var(--ink-3);font-size:0.85rem;">/mo+</small></span>
-          <span class="price-detail">→ $${rentRange.max.toLocaleString()}/mo</span>
+        <div class="listing-body">
+          <div class="name">${l.name}</div>
+          <div class="neighborhood">${l.neighborhood}, ${tBor(l.borough)}</div>
+          <div class="listing-tags">
+            <span class="tag ami">${amiRange}</span>
+            ${unitTag}
+            <span class="tag">${l.available} ${t('units_label')}</span>
+          </div>
+          <div class="listing-meta">
+            <span class="price">$${rentRange.min.toLocaleString()}<small style="font-weight:400;color:var(--ink-3);font-size:0.85rem;">/mo+</small></span>
+            <span class="price-detail">→ $${rentRange.max.toLocaleString()}/mo</span>
+          </div>
         </div>
-      </div>
-    </article>
-  `;
+      </article>
+    `;
+  } catch (e) {
+    console.error('[listingCard] Error rendering card for', l && l.id, e);
+    return '';
+  }
 }
 
 /* ============================================================
@@ -2821,67 +2855,72 @@ function listingCard(l, statusOverride, reasonOverride) {
 ============================================================ */
 let listingFilter = { search: '', borough: 'all', bedrooms: 'all', sort: 'deadline' };
 function renderListings(root) {
-  root.innerHTML = `
-    <div class="page-header with-action">
-      <div>
-        <h2>${t('listings_title')}</h2>
-        <p class="sub">${t('listings_sub', { n: LISTINGS.length })}</p>
+  try {
+    root.innerHTML = `
+      <div class="page-header with-action">
+        <div>
+          <h2>${t('listings_title')}</h2>
+          <p class="sub">${t('listings_sub', { n: LISTINGS.length })}</p>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="navigate('map')">${t('listings_map_view')}</button>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="navigate('map')">${t('listings_map_view')}</button>
-    </div>
-    <div class="filter-bar">
-      <input class="search-input" placeholder="${t('search_ph')}" value="${listingFilter.search}" oninput="listingFilter.search=this.value;rerenderListings()">
-      <div class="chip-row">
-        <span class="chip-label">${t('filter_borough')}</span>
-        ${['all', 'Manhattan', 'Brooklyn', 'Bronx', 'Queens', 'Staten Island'].map(b => `
-          <button class="filter-chip ${listingFilter.borough === b ? 'active' : ''}" onclick="listingFilter.borough='${b}';rerenderListings()">${b === 'all' ? t('filter_all') : tBor(b)}</button>
-        `).join('')}
+      <div class="filter-bar">
+        <input class="search-input" placeholder="${t('search_ph')}" value="${listingFilter.search}" oninput="listingFilter.search=this.value;rerenderListings()">
+        <div class="chip-row">
+          <span class="chip-label">${t('filter_borough')}</span>
+          ${['all', 'Manhattan', 'Brooklyn', 'Bronx', 'Queens', 'Staten Island'].map(b => `
+            <button class="filter-chip ${listingFilter.borough === b ? 'active' : ''}" onclick="listingFilter.borough='${b}';rerenderListings()">${b === 'all' ? t('filter_all') : tBor(b)}</button>
+          `).join('')}
+        </div>
+        <div class="chip-row">
+          <span class="chip-label">${t('filter_bedrooms')}</span>
+          ${['all', 'Studio', '1BR', '2BR', '3BR'].map(b => `
+            <button class="filter-chip ${listingFilter.bedrooms === b ? 'active' : ''}" onclick="listingFilter.bedrooms='${b}';rerenderListings()">${b === 'all' ? t('filter_any') : b}</button>
+          `).join('')}
+        </div>
+        <div class="chip-row" style="margin-left:auto;">
+          <span class="chip-label">${t('filter_sort')}</span>
+          ${[['deadline', t('sort_deadline')], ['rent-low', t('sort_rent')], ['ami', t('sort_ami')], ['eligibility', t('sort_match')]].map(([v, lbl]) => `
+            <button class="filter-chip ${listingFilter.sort === v ? 'active' : ''}" onclick="listingFilter.sort='${v}';rerenderListings()">${lbl}</button>
+          `).join('')}
+        </div>
       </div>
-      <div class="chip-row">
-        <span class="chip-label">${t('filter_bedrooms')}</span>
-        ${['all', 'Studio', '1BR', '2BR', '3BR'].map(b => `
-          <button class="filter-chip ${listingFilter.bedrooms === b ? 'active' : ''}" onclick="listingFilter.bedrooms='${b}';rerenderListings()">${b === 'all' ? t('filter_any') : b}</button>
-        `).join('')}
-      </div>
-      <div class="chip-row" style="margin-left:auto;">
-        <span class="chip-label">${t('filter_sort')}</span>
-        ${[['deadline', t('sort_deadline')], ['rent-low', t('sort_rent')], ['ami', t('sort_ami')], ['eligibility', t('sort_match')]].map(([v, lbl]) => `
-          <button class="filter-chip ${listingFilter.sort === v ? 'active' : ''}" onclick="listingFilter.sort='${v}';rerenderListings()">${lbl}</button>
-        `).join('')}
-      </div>
-    </div>
-    <div id="listings-grid" class="listing-grid"></div>
-  `;
-  rerenderListings();
+      <div id="listings-grid" class="listing-grid"></div>
+    `;
+    rerenderListings();
+  } catch (e) {
+    console.error('[renderListings] Error:', e);
+    root.innerHTML = '<div class="empty" style="padding:40px 20px;text-align:center"><p style="color:var(--ink-3);margin-bottom:16px;">Loading listings&hellip;</p><button class="btn btn-outline" onclick="renderApp()">Retry</button></div>';
+  }
 }
 function rerenderListings() {
   const grid = document.getElementById('listings-grid');
   if (!grid) return;
-  let filtered = LISTINGS.slice();
-  if (listingFilter.search) {
-    const q = listingFilter.search.toLowerCase();
-    filtered = filtered.filter(l => (l.name + ' ' + l.neighborhood + ' ' + l.borough + ' ' + l.address).toLowerCase().includes(q));
+  try {
+    let filtered = LISTINGS.slice();
+    if (listingFilter.search) {
+      const q = listingFilter.search.toLowerCase();
+      filtered = filtered.filter(l => (l.name + ' ' + l.neighborhood + ' ' + l.borough + ' ' + l.address).toLowerCase().includes(q));
+    }
+    if (listingFilter.borough !== 'all') filtered = filtered.filter(l => l.borough === listingFilter.borough);
+    if (listingFilter.bedrooms !== 'all') filtered = filtered.filter(l => l.units.some(u => u.type === listingFilter.bedrooms));
+    // Sort
+    if (listingFilter.sort === 'deadline') filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+    else if (listingFilter.sort === 'rent-low') filtered.sort((a, b) => unitRentRange(a).min - unitRentRange(b).min);
+    else if (listingFilter.sort === 'ami') filtered.sort((a, b) => Math.min(...a.units.map(u => u.ami)) - Math.min(...b.units.map(u => u.ami)));
+    else if (listingFilter.sort === 'eligibility') {
+      const order = { 'eligible': 0, 'maybe': 1, 'not-eligible': 2, 'unknown': 3 };
+      filtered.sort((a, b) => order[checkListingEligibility(a, state.household).status] - order[checkListingEligibility(b, state.household).status]);
+    }
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="emoji">🔍</div><p>${t('listings_empty')}</p></div>`;
+      return;
+    }
+    grid.innerHTML = filtered.map(l => listingCard(l)).join('');
+  } catch (e) {
+    console.error('[rerenderListings] Error:', e);
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><p style="color:var(--ink-3)">Loading listings&hellip;</p></div>';
   }
-  if (listingFilter.borough !== 'all') filtered = filtered.filter(l => l.borough === listingFilter.borough);
-  if (listingFilter.bedrooms !== 'all') filtered = filtered.filter(l => l.units.some(u => u.type === listingFilter.bedrooms));
-  // Sort
-  if (listingFilter.sort === 'deadline') filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-  else if (listingFilter.sort === 'rent-low') filtered.sort((a, b) => unitRentRange(a).min - unitRentRange(b).min);
-  else if (listingFilter.sort === 'ami') filtered.sort((a, b) => Math.min(...a.units.map(u => u.ami)) - Math.min(...b.units.map(u => u.ami)));
-  else if (listingFilter.sort === 'eligibility') {
-    const order = { 'eligible': 0, 'maybe': 1, 'not-eligible': 2, 'unknown': 3 };
-    filtered.sort((a, b) => order[checkListingEligibility(a, state.household).status] - order[checkListingEligibility(b, state.household).status]);
-  }
-  // Update sort/borough/bedroom buttons
-  document.querySelectorAll('.filter-bar .filter-chip').forEach(b => {
-    const matches = b.textContent.trim();
-    // (handled by re-render of buttons via onclick — not needed)
-  });
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="emoji">🔍</div><p>${t('listings_empty')}</p></div>`;
-    return;
-  }
-  grid.innerHTML = filtered.map(l => listingCard(l)).join('');
 }
 
 /* ============================================================
