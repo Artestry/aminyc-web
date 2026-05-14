@@ -160,8 +160,9 @@
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 28px; border-radius: 999px; font-weight: 600; font-size: 0.95rem; transition: all 0.18s; border: none; cursor: pointer; white-space: nowrap; }
   .btn-primary { background: var(--coral); color: white; }
   .btn-primary:hover { background: #D55340; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(232,98,77,0.35); }
-  .btn-ghost { background: transparent; color: white; }
-  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .btn-ghost { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.25); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.45); color: #fff; }
+  .btn-ghost:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   .btn-secondary { background: var(--ink); color: white; }
   .btn-secondary:hover { background: var(--ink-2); }
   .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--line-2); }
@@ -1010,7 +1011,7 @@
       </div>
 
       <div class="onboard-controls">
-        <button class="btn btn-ghost" onclick="skipOnboarding()">Skip</button>
+        <button class="btn btn-ghost" id="onboard-skip-btn" onclick="skipOnboarding()" aria-label="Skip onboarding and go to sign in">Skip</button>
         <div class="onboard-dots">
           <div class="onboard-dot active" data-step="1"></div>
           <div class="onboard-dot" data-step="2"></div>
@@ -1039,13 +1040,14 @@
         </div>
         <h2>Welcome back</h2>
         <p class="sub">Sign in to track applications, save listings, and store your documents.</p>
+        <p class="login-pilot-hint" style="font-size:0.8rem;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 16px;">Pilot preview — any email and password works to sign in.</p>
         <div class="field">
           <label>Email</label>
-          <input class="input" id="login-email" type="email" placeholder="you@example.com" value="maria.santos@email.com">
+          <input class="input" id="login-email" type="email" placeholder="you@example.com" autocomplete="email">
         </div>
         <div class="field">
           <label>Password</label>
-          <input class="input" id="login-password" type="password" placeholder="••••••••" value="demoaccess">
+          <input class="input" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password">
         </div>
         <button class="btn btn-secondary btn-block" onclick="doLogin()">Sign in</button>
         <div class="login-divider">or continue with</div>
@@ -1315,7 +1317,7 @@ const LISTINGS = [
     borough: 'Manhattan',
     coords: [40.7384, -74.0064],
     images: [
-      'https://cdn.prod.website-files.com/66182e64dc1acf0fb142a0fb/6998a2b240993afb023808c0_When-a-Pritzker-Prize-Firm-Designs-Affordable-Housing%2C-Everything-Changes.jpg',
+      'https://newyorkyimby.com/wp-content/uploads/2025/12/388-Hudson-Street-NW-Corner-Rendering.jpg',
       'https://thumbs.dreamstime.com/b/modern-apartment-interior-living-room-kitchen-minimalist-design-bright-spacious-modern-apartment-interior-showcases-411194454.jpg',
       'https://i0.wp.com/cocolapinedesign.com/wp-content/uploads/MED95F05AD23514441F9DA149128288459D_20220927102300_w2200_q80.jpeg?fit=2200%2C1650&ssl=1'
     ],
@@ -1345,7 +1347,7 @@ const LISTINGS = [
     borough: 'Bronx',
     coords: [40.8175, -73.9166],
     images: [
-      'https://www.multihousingnews.com/wp-content/uploads/sites/57/2025/06/La-Central-Hudson-BRP.jpg',
+      'https://thumbs.cityrealty.com/assets/smart/0x0/webp/a/a7/a7dfc2aec3a36bea41b52a05ead241756c7884d8/600-bergen-avenue.jpg',
       'https://hips.hearstapps.com/hmg-prod/images/house-tour-home-ideas-modern-interior-design-7-64bf9723ad92c.jpeg',
       'https://thumbs.dreamstime.com/b/modern-open-plan-living-room-sofa-dining-area-kitchen-bright-contemporary-apartment-interior-coffee-table-stylish-447470807.jpg'
     ],
@@ -1435,7 +1437,7 @@ const LISTINGS = [
     borough: 'Brooklyn',
     coords: [40.6625, -73.8770],
     images: [
-      'https://www.archpaper.com/wp-content/uploads/2026/03/DattnerArchitects__2106_00_N66-1280x720.jpg',
+      'https://www.dattner.com/wp-content/uploads/2021/06/JBL-feat-updated-122121.jpg',
       'https://hips.hearstapps.com/hmg-prod/images/house-tour-home-ideas-modern-interior-design-7-64bf9723ad92c.jpeg',
       'https://i0.wp.com/cocolapinedesign.com/wp-content/uploads/MED95F05AD23514441F9DA149128288459D_20220927102300_w2200_q80.jpeg?fit=2200%2C1650&ssl=1'
     ],
@@ -1585,7 +1587,7 @@ const LISTINGS = [
     borough: 'Brooklyn',
     coords: [40.6634, -73.9094],
     images: [
-      'https://www.multihousingnews.com/wp-content/uploads/sites/57/2025/07/Brownsville-Arts-Center-Apartments-Gilbane.jpg',
+      'https://www.brooklynpaper.com/wp-content/uploads/2025/07/brownsville-arts-center-and-apartments-aufgang-architects-07-01-25.jpg',
       'https://cdn.apartmenttherapy.info/image/upload/f_jpg,q_auto:eco,c_fill,g_auto,w_1500,ar_4:3/at%2Fhouse%20tours%2F2023-House-Tours%2F2023-June%2Fkarina-d%2Ftours-prague-karina-d-4815',
       'https://i0.wp.com/cocolapinedesign.com/wp-content/uploads/MED95F05AD23514441F9DA149128288459D_20220927102300_w2200_q80.jpeg?fit=2200%2C1650&ssl=1'
     ],
@@ -1899,6 +1901,7 @@ const T = {
     splash_skip:'Skip', splash_continue:'Continue →', splash_get_started:'Get started →',
     /* login */
     login_welcome:'Welcome back', login_sub:'Sign in to track applications, save listings, and store your documents.',
+    login_pilot_hint:'Pilot preview — any email and password works to sign in.',
     login_email:'Email', login_password:'Password', login_signin:'Sign in',
     login_or:'or continue with', login_google:'Continue with Google',
     login_new:'New to AMI NYC?', login_create:'Create account',
@@ -2040,6 +2043,7 @@ const T = {
     splash_body_3:'Recibos de sueldo, declaraciones de impuestos, identificación, cartas laborales — guárdalos en tu bóveda privada para postularte el momento que te elijan.',
     splash_skip:'Saltar', splash_continue:'Continuar →', splash_get_started:'Comenzar →',
     login_welcome:'Bienvenido de nuevo', login_sub:'Inicia sesión para rastrear solicitudes, guardar anuncios y almacenar tus documentos.',
+    login_pilot_hint:'Vista previa piloto — cualquier correo y contraseña funcionan para iniciar sesión.',
     login_email:'Correo electrónico', login_password:'Contraseña', login_signin:'Iniciar sesión',
     login_or:'o continúa con', login_google:'Continuar con Google',
     login_new:'¿Nuevo en AMI NYC?', login_create:'Crear cuenta',
@@ -2166,6 +2170,7 @@ const T = {
     splash_body_3:'工资单、税务申报、身份证件、雇佣信——把它们存放在您的私人文件库中，一旦被选中即可立即申请。',
     splash_skip:'跳过', splash_continue:'继续 →', splash_get_started:'开始使用 →',
     login_welcome:'欢迎回来', login_sub:'登录以跟踪申请、保存房源并存储您的文件。',
+    login_pilot_hint:'试点预览 — 任何电子邮箱和密码都可以登录。',
     login_email:'电子邮箱', login_password:'密码', login_signin:'登录',
     login_or:'或继续使用', login_google:'使用 Google 继续',
     login_new:'第一次使用 AMI NYC？', login_create:'创建账户',
@@ -2514,6 +2519,7 @@ function applyStaticTranslations() {
   if (lf) {
     const h2 = lf.querySelector('h2'); if (h2) h2.textContent = t('login_welcome');
     const sub = lf.querySelector('.sub'); if (sub) sub.textContent = t('login_sub');
+    const hint = lf.querySelector('.login-pilot-hint'); if (hint) hint.textContent = t('login_pilot_hint');
     const labels = lf.querySelectorAll('.field label');
     if (labels[0]) labels[0].textContent = t('login_email');
     if (labels[1]) labels[1].textContent = t('login_password');
@@ -2718,7 +2724,12 @@ function nextOnboard() {
       d.classList.toggle('active', (i + 1) === onboardStep);
     });
     if (onboardStep === 3) {
-      document.getElementById('onboard-next-btn').textContent = 'Get started →';
+      const nextBtn = document.getElementById('onboard-next-btn');
+      if (nextBtn) nextBtn.textContent = (typeof t === 'function' ? t('splash_get_started') : 'Get started →');
+      // Hide the Skip button on the last step — "Get started" is the same action.
+      // Use visibility:hidden to preserve the controls row layout (flex space-between).
+      const skipBtn = document.getElementById('onboard-skip-btn');
+      if (skipBtn) skipBtn.style.visibility = 'hidden';
     }
   } else {
     state.onboardSeen = true; saveState();
@@ -2869,19 +2880,19 @@ function renderListings(root) {
         <div class="chip-row">
           <span class="chip-label">${t('filter_borough')}</span>
           ${['all', 'Manhattan', 'Brooklyn', 'Bronx', 'Queens', 'Staten Island'].map(b => `
-            <button class="filter-chip ${listingFilter.borough === b ? 'active' : ''}" onclick="listingFilter.borough='${b}';rerenderListings()">${b === 'all' ? t('filter_all') : tBor(b)}</button>
+            <button class="filter-chip ${listingFilter.borough === b ? 'active' : ''}" data-filter-key="borough" data-filter-value="${b}" onclick="setListingFilter('borough', '${b}')">${b === 'all' ? t('filter_all') : tBor(b)}</button>
           `).join('')}
         </div>
         <div class="chip-row">
           <span class="chip-label">${t('filter_bedrooms')}</span>
           ${['all', 'Studio', '1BR', '2BR', '3BR'].map(b => `
-            <button class="filter-chip ${listingFilter.bedrooms === b ? 'active' : ''}" onclick="listingFilter.bedrooms='${b}';rerenderListings()">${b === 'all' ? t('filter_any') : b}</button>
+            <button class="filter-chip ${listingFilter.bedrooms === b ? 'active' : ''}" data-filter-key="bedrooms" data-filter-value="${b}" onclick="setListingFilter('bedrooms', '${b}')">${b === 'all' ? t('filter_any') : b}</button>
           `).join('')}
         </div>
         <div class="chip-row" style="margin-left:auto;">
           <span class="chip-label">${t('filter_sort')}</span>
           ${[['deadline', t('sort_deadline')], ['rent-low', t('sort_rent')], ['ami', t('sort_ami')], ['eligibility', t('sort_match')]].map(([v, lbl]) => `
-            <button class="filter-chip ${listingFilter.sort === v ? 'active' : ''}" onclick="listingFilter.sort='${v}';rerenderListings()">${lbl}</button>
+            <button class="filter-chip ${listingFilter.sort === v ? 'active' : ''}" data-filter-key="sort" data-filter-value="${v}" onclick="setListingFilter('sort', '${v}')">${lbl}</button>
           `).join('')}
         </div>
       </div>
@@ -2892,6 +2903,34 @@ function renderListings(root) {
     console.error('[renderListings] Error:', e);
     root.innerHTML = '<div class="empty" style="padding:40px 20px;text-align:center"><p style="color:var(--ink-3);margin-bottom:16px;">Loading listings&hellip;</p><button class="btn btn-outline" onclick="renderApp()">Retry</button></div>';
   }
+}
+function setListingFilter(key, value) {
+  // 1) Update state
+  listingFilter[key] = value;
+  // 2) Re-sync the visible active class on every chip in the same group so
+  //    the user immediately sees their selection persisted. The chips live
+  //    outside #listings-grid, so rerenderListings() alone can't touch them.
+  document.querySelectorAll('.filter-chip[data-filter-key="' + key + '"]').forEach(function (chip) {
+    chip.classList.toggle('active', chip.dataset.filterValue === String(value));
+  });
+  // 3) Re-render the filtered listings grid.
+  rerenderListings();
+  // 4) Keep the user anchored to the listings area. If they've scrolled past
+  //    the filter bar (so the grid just shrank under them and the page now
+  //    looks empty), gently snap the viewport back to the top of the grid.
+  //    Never scroll UP past the user — only correct an "I've fallen off the
+  //    bottom of the page" situation. Do not scroll on first render.
+  try {
+    var grid = document.getElementById('listings-grid');
+    if (grid) {
+      var gridTop = grid.getBoundingClientRect().top + window.pageYOffset - 100;
+      var docHeight = document.documentElement.scrollHeight;
+      var viewportBottom = window.pageYOffset + window.innerHeight;
+      if (viewportBottom > docHeight + 40 || window.pageYOffset > gridTop + grid.offsetHeight) {
+        window.scrollTo({ top: Math.max(gridTop, 0), behavior: 'smooth' });
+      }
+    }
+  } catch (e) { /* scroll polish only — never block the filter from applying */ }
 }
 function rerenderListings() {
   const grid = document.getElementById('listings-grid');
@@ -3195,7 +3234,7 @@ function renderChecker(root) {
           <label>${t('checker_income')}</label>
           <div class="input-with-prefix">
             <span class="prefix">$</span>
-            <input class="input" type="number" id="ck-income" value="${state.household.income}" onchange="updateHousehold()">
+            <input class="input" type="number" id="ck-income" value="${state.household.income}" min="0" max="2000000" step="1000" inputmode="numeric" oninput="updateHousehold()" onchange="updateHousehold()">
           </div>
         </div>
         <div class="field">
@@ -3243,7 +3282,11 @@ function renderChecker(root) {
   `;
 }
 function updateHousehold() {
-  const inc = parseInt(document.getElementById('ck-income').value, 10) || 0;
+  // Clamp income to a sane band so an accidental keystroke can't produce a
+  // 3,434,100% AMI display (or persist that to state). $2M ceiling is well
+  // above any plausible NYC affordable-housing applicant income.
+  const rawInc = parseInt(document.getElementById('ck-income').value, 10);
+  const inc = Math.max(0, Math.min(2000000, isNaN(rawInc) ? 0 : rawInc));
   const hh = parseInt(document.getElementById('ck-hh').value, 10) || 1;
   state.household.income = inc;
   state.household.hhSize = hh;
