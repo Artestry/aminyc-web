@@ -2758,10 +2758,16 @@ function doLogin() {
   state.user = { email, name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') };
   saveState();
   showView('app');
-  if (!currentRoute || currentRoute === 'login') currentRoute = 'home';
+  // Always land freshly-signed-in users on the Home dashboard. Without this
+  // reset, a previous session's currentRoute (e.g. 'listings' after a quick
+  // sign-out + sign-in) would survive and take the user straight to that
+  // route, skipping Home. The user has explicitly asked for Home as the
+  // post-login landing every time.
+  currentRoute = 'home';
   // Use replaceState to sync the URL without firing hashchange (which would
   // trigger a redundant second renderApp call).
   try { history.replaceState(null, '', '#' + currentRoute); } catch (e) {}
+  try { window.scrollTo(0, 0); } catch (e) {}
   renderApp();
   toast(t('toast_welcome', { name: state.user.name }));
 }
@@ -3243,7 +3249,7 @@ function renderChecker(root) {
           <label>${t('checker_income')}</label>
           <div class="input-with-prefix">
             <span class="prefix">$</span>
-            <input class="input" type="number" id="ck-income" value="${state.household.income}" min="0" max="2000000" step="1000" inputmode="numeric" oninput="updateHousehold()" onchange="updateHousehold()">
+            <input class="input" type="number" id="ck-income" value="${state.household.income}" min="0" max="2000000" step="1000" inputmode="numeric" oninput="updateAmiPreview()" onchange="updateHousehold()">
           </div>
         </div>
         <div class="field">
@@ -3304,6 +3310,31 @@ function updateHousehold() {
   state.household.nyResident = document.getElementById('ck-resident').checked;
   saveState();
   renderChecker(document.getElementById('main-area'));
+}
+// Lightweight live-update for the AMI badge while the user is typing in the
+// income field. CRITICAL: this must NOT re-render the form — that would tear
+// down the active <input> element and steal the user's focus mid-keystroke.
+// Only patches the three text nodes inside .ami-summary; the full re-render
+// + persistence happens on `onchange` (blur) via updateHousehold().
+function updateAmiPreview() {
+  try {
+    const incEl = document.getElementById('ck-income');
+    const hhEl = document.getElementById('ck-hh');
+    if (!incEl || !hhEl) return;
+    const rawInc = parseInt(incEl.value, 10);
+    const inc = Math.max(0, Math.min(2000000, isNaN(rawInc) ? 0 : rawInc));
+    const hh = parseInt(hhEl.value, 10) || 1;
+    const ami = householdAmiPercent(inc, hh);
+    const ami100 = (AMI_100_BY_HHSIZE[Math.min(hh, 8)] || 0).toLocaleString();
+    const summary = document.querySelector('.ami-summary');
+    if (!summary) return;
+    const valEl = summary.querySelector('.val');
+    const detEl = summary.querySelector('.det');
+    if (valEl) valEl.textContent = ami + '%';
+    if (detEl && typeof t === 'function') {
+      detEl.textContent = t('checker_ami_det', { income: inc.toLocaleString(), n: hh, ami100 });
+    }
+  } catch (e) { /* preview only — never block the user's typing */ }
 }
 
 /* ============================================================
