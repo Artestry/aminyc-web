@@ -786,6 +786,11 @@
   input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
+  /* Save-button "Saved ✓" confirmation state — green flash for ~1.5s so the
+     user gets unmistakable feedback that their info was persisted. */
+  .btn.btn-saved { background: #16a34a; color: #fff; cursor: default; }
+  .btn.btn-saved:hover { background: #16a34a; transform: none; box-shadow: none; }
+
   /* LANGUAGE TOGGLE */
   .lang-toggle {
     display: inline-flex;
@@ -1968,6 +1973,7 @@ const T = {
     checker_voucher:'I have a Section 8 / CityFHEPS / housing voucher',
     checker_employed:'Currently employed', checker_resident:'NYC resident (community preference)',
     checker_ami_lbl:'Your AMI level', checker_ami_det:'${income} for {n} people<br>100% AMI = ${ami100}/yr',
+    checker_save:'Save my info', checker_saved:'Saved ✓',
     checker_likely:'Likely eligible', checker_possibly:'Possibly eligible', checker_not:'Not eligible',
     checker_all_sorted:'All listings, sorted by your match',
     /* vault */
@@ -1999,6 +2005,7 @@ const T = {
     profile_activity:'Activity', profile_saved:'Saved listings', profile_apps:'Applications started', profile_docs:'Documents in vault',
     /* toasts */
     toast_welcome:'Welcome, {name}!', toast_signed_out:'Signed out',
+    toast_household_saved:'Household info saved',
     toast_removed:'Removed from saved', toast_saved:'Saved to favorites',
     toast_app_opened:'Application portal opened',
     toast_doc_added:'Document added to vault', toast_doc_removed:'Document removed', toast_profile_saved:'Profile saved',
@@ -2102,6 +2109,7 @@ const T = {
     checker_voucher:'Tengo un cupón Section 8 / CityFHEPS',
     checker_employed:'Actualmente empleado', checker_resident:'Residente de NYC (preferencia comunitaria)',
     checker_ami_lbl:'Tu nivel AMI', checker_ami_det:'${income} para {n} personas<br>100% AMI = ${ami100}/año',
+    checker_save:'Guardar mi información', checker_saved:'Guardado ✓',
     checker_likely:'Probable elegible', checker_possibly:'Posiblemente elegible', checker_not:'No elegible',
     checker_all_sorted:'Todos los anuncios, ordenados por tu match',
     vault_title:'Bóveda de documentos',
@@ -2128,6 +2136,7 @@ const T = {
     profile_est_ami:'AMI estimado', profile_save:'Guardar cambios',
     profile_activity:'Actividad', profile_saved:'Anuncios guardados', profile_apps:'Solicitudes iniciadas', profile_docs:'Documentos en bóveda',
     toast_welcome:'¡Bienvenido, {name}!', toast_signed_out:'Sesión cerrada',
+    toast_household_saved:'Información del hogar guardada',
     toast_removed:'Eliminado de guardados', toast_saved:'Guardado en favoritos',
     toast_app_opened:'Portal de aplicación abierto',
     toast_doc_added:'Documento agregado', toast_doc_removed:'Documento eliminado', toast_profile_saved:'Perfil guardado',
@@ -2229,6 +2238,7 @@ const T = {
     checker_voucher:'我有 Section 8 / CityFHEPS 住房券',
     checker_employed:'目前在职', checker_resident:'纽约市居民（社区优先）',
     checker_ami_lbl:'您的 AMI 水平', checker_ami_det:'{n} 人家庭 ${income}<br>100% AMI = ${ami100}/年',
+    checker_save:'保存我的信息', checker_saved:'已保存 ✓',
     checker_likely:'很可能符合', checker_possibly:'可能符合', checker_not:'不符合',
     checker_all_sorted:'所有房源，按匹配度排序',
     vault_title:'文件库',
@@ -2255,6 +2265,7 @@ const T = {
     profile_est_ami:'估计 AMI', profile_save:'保存更改',
     profile_activity:'活动', profile_saved:'已保存房源', profile_apps:'已开始申请', profile_docs:'文件库内文件',
     toast_welcome:'欢迎，{name}！', toast_signed_out:'已退出',
+    toast_household_saved:'家庭信息已保存',
     toast_removed:'已从收藏中移除', toast_saved:'已添加到收藏',
     toast_app_opened:'申请门户已打开',
     toast_doc_added:'文件已添加到文件库', toast_doc_removed:'文件已移除', toast_profile_saved:'个人资料已保存',
@@ -3288,6 +3299,7 @@ function renderChecker(root) {
           <div class="val">${userAmi}%</div>
           <div class="det">${t('checker_ami_det', { income: state.household.income.toLocaleString(), n: state.household.hhSize, ami100 })}</div>
         </div>
+        <button id="ck-save-btn" class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveHousehold()">${t('checker_save')}</button>
       </aside>
       <div>
         <div class="check-results-summary">
@@ -3317,6 +3329,32 @@ function updateHousehold() {
   state.household.nyResident = document.getElementById('ck-resident').checked;
   saveState();
   renderChecker(document.getElementById('main-area'));
+}
+// Explicit Save action. State is already auto-saved on every field change,
+// so this is mostly about giving the user clear visual confirmation. We
+// re-run updateHousehold() defensively in case the income field was edited
+// without ever blurring (typed-and-clicked-Save), then flash the button to
+// "Saved ✓" and surface a toast for emphasis.
+function saveHousehold() {
+  try { updateHousehold(); } catch (e) {}
+  toast(t('toast_household_saved'));
+  // The checker re-render inside updateHousehold rebuilds the button, so the
+  // element we'd want to flash is gone by now. Re-find it and apply the flash
+  // on the fresh node.
+  const btn = document.getElementById('ck-save-btn');
+  if (!btn) return;
+  const originalLabel = btn.textContent;
+  btn.textContent = t('checker_saved');
+  btn.disabled = true;
+  btn.classList.add('btn-saved');
+  setTimeout(function () {
+    const stillThere = document.getElementById('ck-save-btn');
+    if (stillThere) {
+      stillThere.textContent = originalLabel;
+      stillThere.disabled = false;
+      stillThere.classList.remove('btn-saved');
+    }
+  }, 1500);
 }
 // Lightweight live-update for the AMI badge while the user is typing in the
 // income field. CRITICAL: this must NOT re-render the form — that would tear
