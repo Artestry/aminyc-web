@@ -779,6 +779,13 @@
   .input-with-prefix .prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 0.95rem; pointer-events: none; }
   .input-with-prefix .input { padding-left: 28px; }
 
+  /* Hide the browser's default number-input spinner arrows. Users only need
+     to type the amount — the steppers feel cluttered and add no value for
+     income entry. Applies across Chrome, Safari, and Firefox. */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
   /* LANGUAGE TOGGLE */
   .lang-toggle {
     display: inline-flex;
