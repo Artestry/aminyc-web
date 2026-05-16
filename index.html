@@ -319,8 +319,53 @@
     border-radius: 999px;
     font-size: 0.88rem;
     font-weight: 500;
+    cursor: pointer;
   }
   .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--navy), var(--coral)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
+
+  /* MOBILE TOP BAR */
+  .mobile-topbar {
+    display: none;
+    position: sticky; top: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+    z-index: 99;
+    align-items: center;
+    justify-content: space-between;
+  }
+  @media (max-width: 880px) { .mobile-topbar { display: flex; } }
+  .mobile-topbar .splash-logo { font-size: 1rem; margin: 0; }
+  .mobile-topbar .topbar-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--navy), var(--coral));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 0.82rem; cursor: pointer;
+    border: 2px solid transparent; transition: border-color 0.15s;
+  }
+  .mobile-topbar .topbar-avatar:hover { border-color: var(--coral); }
+  .topbar-dropdown {
+    display: none; position: absolute; top: 52px; right: 16px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    min-width: 200px; z-index: 200; overflow: hidden;
+  }
+  .topbar-dropdown.open { display: block; }
+  .topbar-dropdown .dd-header {
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+    font-size: 0.88rem;
+  }
+  .topbar-dropdown .dd-header .dd-name { font-weight: 600; color: var(--ink); }
+  .topbar-dropdown .dd-header .dd-email { font-size: 0.8rem; color: var(--ink-3); margin-top: 2px; }
+  .topbar-dropdown .dd-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; font-size: 0.9rem; font-weight: 500;
+    color: var(--ink-2); cursor: pointer; transition: background 0.1s;
+    width: 100%; text-align: left; border: none; background: none;
+  }
+  .topbar-dropdown .dd-item:hover { background: var(--surface-2); color: var(--ink); }
+  .topbar-dropdown .dd-item.signout { color: var(--coral); }
+  .topbar-dropdown .dd-item.signout:hover { background: #FFF0ED; }
 
   /* ==================== HERO QUALIFICATION CARD ==================== */
   .qualify-hero {
@@ -1123,6 +1168,23 @@
           <p style="font-size:0.78rem;color:var(--ink-4);">Listings sourced from NYC Housing Connect, HPD &amp; HDC. AMI NYC is not affiliated with NYC government.</p>
         </div>
       </aside>
+
+      <!-- Mobile top-bar: visible on ≤880px -->
+      <div class="mobile-topbar" id="mobile-topbar">
+        <div class="splash-logo">
+          <div class="splash-logo-mark">A</div>
+          <span>AMI NYC</span>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar" onclick="toggleTopbarDropdown(event)"></div>
+        <div class="topbar-dropdown" id="topbar-dropdown">
+          <div class="dd-header">
+            <div class="dd-name" id="dd-name"></div>
+            <div class="dd-email" id="dd-email"></div>
+          </div>
+          <button class="dd-item" onclick="navigate('profile');closeTopbarDropdown();">👤 Profile</button>
+          <button class="dd-item signout" onclick="doLogout();closeTopbarDropdown();">↩︎ Sign out</button>
+        </div>
+      </div>
 
       <main class="main-area" id="main-area">
         <!-- View content rendered here by JS -->
@@ -2727,6 +2789,7 @@ function renderApp() {
     main.innerHTML = '<div class="empty" style="padding:40px 20px;text-align:center"><p style="color:var(--ink-3);margin-bottom:16px;">Something went wrong loading this view.</p><button class="btn btn-outline" onclick="renderApp()">Retry</button></div>';
   }
   window.scrollTo({ top: 0, behavior: 'instant' });
+  updateTopbar();
 }
 
 /* ============================================================
@@ -2791,10 +2854,40 @@ function doLogin() {
 }
 function doLogout() {
   state.user = null; saveState();
+  closeTopbarDropdown();
   showView('login');
   applyStaticTranslations();
   toast(t('toast_signed_out'));
 }
+
+/* ============================================================
+   MOBILE TOP-BAR DROPDOWN
+============================================================ */
+function updateTopbar() {
+  if (!state.user) return;
+  var av = document.getElementById('topbar-avatar');
+  var nm = document.getElementById('dd-name');
+  var em = document.getElementById('dd-email');
+  if (av) av.textContent = initials(state.user.name || '?');
+  if (nm) nm.textContent = state.user.name || '';
+  if (em) em.textContent = state.user.email || '';
+}
+function toggleTopbarDropdown(e) {
+  e.stopPropagation();
+  var dd = document.getElementById('topbar-dropdown');
+  if (dd) dd.classList.toggle('open');
+}
+function closeTopbarDropdown() {
+  var dd = document.getElementById('topbar-dropdown');
+  if (dd) dd.classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('topbar-dropdown');
+  var av = document.getElementById('topbar-avatar');
+  if (dd && dd.classList.contains('open') && !dd.contains(e.target) && e.target !== av) {
+    dd.classList.remove('open');
+  }
+});
 
 /* ============================================================
    HOME / DASHBOARD
@@ -2815,7 +2908,7 @@ function renderHome(root) {
           <h2>${t('hello', { name: (state.user.name || 'there').split(' ')[0] })}</h2>
           <p>${t(eligibleCount === 1 ? 'match_one' : 'match_many', { n: eligibleCount })}</p>
         </div>
-        <div class="avatar-pill"><div class="avatar">${initials(state.user.name || '?')}</div>${state.user.name || ''}</div>
+        <div class="avatar-pill" onclick="navigate('profile')" style="cursor:pointer;"><div class="avatar">${initials(state.user.name || '?')}</div>${state.user.name || ''}</div>
       </div>
 
       <div class="qualify-hero">
