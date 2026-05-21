@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AMI NYC — Affordable Housing & Re-Rental Listings</title>
+<meta name="description" content="AMI NYC pulls every active affordable rental and re-rental lottery from NYC Housing Connect, HPD and HDC into one clean, searchable place.">
+<meta name="theme-color" content="#0f1a2e">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<meta property="og:title" content="AMI NYC — Affordable Housing & Re-Rental Listings">
+<meta property="og:description" content="The fastest way to find an affordable home in New York. Live listings from Housing Connect, HPD, HDC and re-rental sources.">
+<meta property="og:image" content="https://artestry.github.io/aminyc-web/assets/logo.png">
+<meta property="og:url" content="https://artestry.github.io/aminyc-web/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://artestry.github.io/aminyc-web/assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
@@ -118,6 +129,20 @@
     font-weight: 500;
     letter-spacing: -0.01em;
   }
+  /* New image-based logo. Renders the actual AMI NYC brand mark — same
+     visual everywhere. The lockup wraps the badge so .pilot-badge can sit
+     next to or below the image. Old .splash-logo-mark CSS is kept for
+     backward-compat / fallback if the image fails to load. */
+  .brand-logo {
+    height: 44px;
+    width: auto;
+    display: block;
+    border-radius: 8px;
+  }
+  .sidebar .brand-logo { height: 36px; border-radius: 6px; }
+  .mobile-topbar .brand-logo { height: 28px; border-radius: 5px; }
+  .splash .brand-logo { height: 64px; border-radius: 10px; }
+  @media (max-width: 880px) { .splash .brand-logo { height: 56px; } }
   .splash-logo-mark {
     width: 36px;
     height: 36px;
@@ -1048,9 +1073,8 @@
       </div>
     </div>
     <div class="splash-content">
-      <div class="splash-logo" style="flex-wrap:wrap;gap:8px;">
-        <div class="splash-logo-mark">A</div>
-        <span>AMI NYC</span>
+      <div class="splash-logo" style="flex-wrap:wrap;gap:12px;">
+        <img src="assets/logo.png" alt="AMI NYC" class="brand-logo">
         <span id="pilot-badge-splash" class="pilot-badge pilot-badge-dark">Pilot Preview</span>
       </div>
 
@@ -1098,9 +1122,8 @@
     </div>
     <div class="login-pane">
       <div class="login-form">
-        <div class="splash-logo" style="flex-wrap:wrap;gap:8px;">
-          <div class="splash-logo-mark">A</div>
-          <span>AMI NYC</span>
+        <div class="splash-logo" style="flex-wrap:wrap;gap:12px;">
+          <img src="assets/logo.png" alt="AMI NYC" class="brand-logo">
           <span id="pilot-badge-login" class="pilot-badge">Pilot Preview</span>
         </div>
         <h2>Welcome back</h2>
@@ -1126,8 +1149,7 @@
     <div class="login-art">
       <div class="login-art-content">
         <div class="splash-logo">
-          <div class="splash-logo-mark">A</div>
-          <span>AMI NYC</span>
+          <img src="assets/logo.png" alt="AMI NYC" class="brand-logo">
         </div>
       </div>
       <div class="login-art-content">
@@ -1146,9 +1168,8 @@
   <section id="view-app" class="view">
     <div class="app-shell">
       <aside class="sidebar">
-        <div class="splash-logo" style="flex-wrap:wrap;gap:8px;">
-          <div class="splash-logo-mark">A</div>
-          <span>AMI NYC</span>
+        <div class="splash-logo" style="flex-wrap:wrap;gap:10px;">
+          <img src="assets/logo.png" alt="AMI NYC" class="brand-logo">
           <span id="pilot-badge-sidebar" class="pilot-badge">Pilot Preview</span>
         </div>
         <nav>
@@ -1180,8 +1201,7 @@
       <!-- Mobile top-bar: visible on ≤880px -->
       <div class="mobile-topbar" id="mobile-topbar">
         <div class="splash-logo">
-          <div class="splash-logo-mark">A</div>
-          <span>AMI NYC</span>
+          <img src="assets/logo.png" alt="AMI NYC" class="brand-logo">
         </div>
         <div class="topbar-avatar" id="topbar-avatar" onclick="toggleTopbarDropdown(event)"></div>
         <div class="topbar-dropdown" id="topbar-dropdown">
